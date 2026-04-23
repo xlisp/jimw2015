@@ -27,6 +27,18 @@
       paths A=&ldquo;{{ path_from }}&rdquo; &rarr; B=&ldquo;{{ path_to }}&rdquo;
       · found <span class="amber">{{ path_results|length }}</span>
     </div>
+    {% if path_results %}
+      <div class="actions-row">
+        <a class="btn ghost"
+           href="{{ url_for('navs.path_gv', past_id=past_id, path_from=path_from, path_to=path_to) }}">
+          * 下载 path.gv
+        </a>
+        <a class="btn ghost"
+           href="{{ url_for('navs.open_path_gv', past_id=past_id, path_from=path_from, path_to=path_to) }}">
+          * 用 GraphViz 打开路径图
+        </a>
+      </div>
+    {% endif %}
     {% for p in path_results %}
       <div class="nav-row">
         <div class="meta">path #{{ loop.index }} · depth {{ p|length }}</div>
@@ -52,6 +64,9 @@
     </a>
     <a class="btn ghost" href="/past_{{ past_id }}_navs.gv">
       * 情感树.gv
+    </a>
+    <a class="btn ghost" href="{{ url_for('navs.open_gv', past_id=past_id) }}">
+      * 用 GraphViz 打开
     </a>
   </div>
 

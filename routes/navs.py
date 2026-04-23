@@ -1,8 +1,19 @@
 import os
 import random
+import subprocess
+import sys
 from datetime import datetime
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    Response,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import login_required
 from sqlalchemy import and_
 
@@ -283,3 +294,94 @@ def add_root(past_id: int, nav_id: int):
     db.session.add(Activation(past_id=past_id, parid=nav_id))
     db.session.commit()
     return redirect(url_for("navs.index", past_id=past_id))
+
+
+def _paths_to_gv(paths: list[list[Nav]]) -> str:
+    lines = ["digraph G {"]
+    seen: set[tuple[str, str]] = set()
+    for p in paths:
+        for i in range(len(p) - 1):
+            a = _wrap_label(p[i].content or "")
+            b = _wrap_label(p[i + 1].content or "")
+            key = (a, b)
+            if key in seen:
+                continue
+            seen.add(key)
+            lines.append(f'"{a}" -> "{b}"')
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def _save_path_gv(past_id: int, paths: list[list[Nav]]) -> str:
+    public_dir = current_app.config["PUBLIC_DIR"]
+    os.makedirs(public_dir, exist_ok=True)
+    path = os.path.join(public_dir, f"past_{past_id}_path.gv")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(_paths_to_gv(paths))
+    return path
+
+
+@navs_bp.route("/path.gv", methods=["GET"])
+@login_required
+def path_gv(past_id: int):
+    path_from = request.args.get("path_from", "").strip()
+    path_to = request.args.get("path_to", "").strip()
+    if not path_from or not path_to:
+        return "need path_from and path_to", 400
+    paths = _find_paths(past_id, path_from, path_to)
+    body = _paths_to_gv(paths)
+    _save_path_gv(past_id, paths)
+    resp = Response(body, mimetype="text/vnd.graphviz")
+    resp.headers["Content-Disposition"] = (
+        f'attachment; filename="past_{past_id}_path.gv"'
+    )
+    return resp
+
+
+def _open_in_graphviz(gv_path: str) -> tuple[bool, str]:
+    if sys.platform != "darwin":
+        return False, f"open-in-app only works on macOS (server is {sys.platform})"
+    if not os.path.exists(gv_path):
+        return False, f"file not found: {gv_path}"
+    try:
+        subprocess.run(["open", "-a", "Graphviz", gv_path], check=True)
+        return True, "opened in Graphviz"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        try:
+            subprocess.run(["open", gv_path], check=True)
+            return True, "opened with default app"
+        except Exception as exc:  # noqa: BLE001
+            return False, f"failed to open: {exc}"
+
+
+@navs_bp.route("/open_gv", methods=["GET"])
+@login_required
+def open_gv(past_id: int):
+    gv_path = os.path.join(
+        current_app.config["PUBLIC_DIR"], f"past_{past_id}_navs.gv"
+    )
+    ok, msg = _open_in_graphviz(gv_path)
+    flash(msg, "notice" if ok else "error")
+    return redirect(url_for("navs.index", past_id=past_id))
+
+
+@navs_bp.route("/open_path_gv", methods=["GET"])
+@login_required
+def open_path_gv(past_id: int):
+    path_from = request.args.get("path_from", "").strip()
+    path_to = request.args.get("path_to", "").strip()
+    if not path_from or not path_to:
+        flash("need path_from and path_to", "error")
+        return redirect(url_for("navs.index", past_id=past_id))
+    paths = _find_paths(past_id, path_from, path_to)
+    gv_path = _save_path_gv(past_id, paths)
+    ok, msg = _open_in_graphviz(gv_path)
+    flash(msg, "notice" if ok else "error")
+    return redirect(
+        url_for(
+            "navs.index",
+            past_id=past_id,
+            path_from=path_from,
+            path_to=path_to,
+        )
+    )
