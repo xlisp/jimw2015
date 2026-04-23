@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}navs :: past #{{ past.id }}{% endblock %}
+
+{% block content %}
+<h1>Listing Navs :: past#{{ past.id }}</h1>
+<div class="panel" data-title="past.content">
+  {{ past.content | markdown }}
+</div>
+
+<div class="panel" data-title="search.grep">
+  <form class="search-bar" method="get" action="{{ url_for('navs.index', past_id=past_id) }}">
+    <input type="text" name="wd" maxlength="100" autocomplete="off" placeholder="> grep keywords...">
+    <input type="submit" value="search">
+  </form>
+</div>
+
+<div class="panel" data-title="root.control">
+  <div class="actions-row">
+    <a class="btn" href="{{ url_for('navs.update_zero_part', past_id=past_id, nav_id=activation_id) }}">
+      * 回归局部根树 : {{ activation_id }}
+    </a>
+    <a class="btn ghost" href="{{ url_for('navs.update_zero', past_id=past_id, nav_id=0) }}">
+      * 回归分割线
+    </a>
+    <a class="btn ghost" href="/past_{{ past_id }}_navs.gv">
+      * 情感树.gv
+    </a>
+  </div>
+
+  {% if nav_part_root %}
+    <div class="nav-row" id="root-{{ nav_part_root.id }}">
+      <div class="meta">-&gt;&gt; ID: <span class="amber">#{{ nav_part_root.id }}</span> · PID: <span class="pid">{{ nav_part_root.parid }}</span></div>
+      <div class="content">{{ nav_part_root.content }}</div>
+      {% with nav = nav_part_root %}
+        {% include "navs/_newnav.html" %}
+      {% endwith %}
+      <div class="actions">
+        <a href="{{ url_for('navs.edit', past_id=past_id, nav_id=nav_part_root.id) }}">edit</a>
+        <form method="post" action="{{ url_for('navs.destroy', past_id=past_id, nav_id=nav_part_root.id) }}"
+              style="display:inline" onsubmit="return confirm('Are you sure?')">
+          <button class="btn danger" type="submit">destroy</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="panel" data-title="nav.tree">
+  {% for nav in navs %}
+    <div class="nav-row" id="{{ nav.id }}">
+      <span class="indent" style="width: {{ indents.get(nav.id, 0) }}px;"></span>
+      <div class="meta">ID: <span class="amber">#{{ nav.id }}</span> · PID: <span class="pid">{{ nav.parid }}</span></div>
+      <div class="content">{{ nav.content }}</div>
+      {% include "navs/_newnav.html" %}
+      <div class="actions">
+        <a href="{{ url_for('navs.show', past_id=past_id, nav_id=nav.id) }}">show</a>
+        <a href="{{ url_for('navs.update_root', past_id=past_id, nav_id=nav.id) }}">update-root</a>
+        <a href="{{ url_for('navs.edit', past_id=past_id, nav_id=nav.id) }}">edit</a>
+        <form method="post" action="{{ url_for('navs.destroy', past_id=past_id, nav_id=nav.id) }}"
+              style="display:inline" onsubmit="return confirm('Are you sure?')">
+          <button class="btn danger" type="submit">destroy</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="actions-row">
+  <a class="btn" href="{{ url_for('navs.new', past_id=past_id) }}">+ new nav</a>
+  <a class="btn ghost" href="{{ url_for('pasts.index') }}">back to pasts</a>
+</div>
+{% endblock %}
