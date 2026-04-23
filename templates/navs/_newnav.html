@@ -1,0 +1,13 @@
+<form class="reply" method="post" action="{{ url_for('navs.create', past_id=past_id) }}">
+  <textarea
+    id="reply-{{ nav.id }}"
+    class="evaluate-textarea"
+    name="content"
+    placeholder="> reply..."
+    rows="1"
+    maxlength="2000"></textarea>
+  <input type="hidden" name="parid" value="{{ nav.id }}">
+  <div class="actions-row">
+    <input type="submit" value="submit">
+  </div>
+</form>

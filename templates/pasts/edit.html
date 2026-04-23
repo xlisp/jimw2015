@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}edit past :: jimw{% endblock %}
+
+{% block content %}
+<h1>Editing Past #{{ past.id }}</h1>
+<div class="panel" data-title="past.edit">
+  {% with action = url_for('pasts.update', past_id=past.id), submit_label = 'update', _method = 'put' %}
+    {% include "pasts/_form.html" %}
+  {% endwith %}
+</div>
+<div class="actions-row">
+  <a class="btn ghost" href="{{ url_for('pasts.show', past_id=past.id) }}">show</a>
+  <a class="btn ghost" href="{{ url_for('pasts.index') }}">back</a>
+</div>
+{% endblock %}

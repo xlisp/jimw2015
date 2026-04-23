@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}new past :: jimw{% endblock %}
+
+{% block content %}
+<h1>New Past</h1>
+<div class="panel" data-title="past.new">
+  {% with action = url_for('pasts.create'), submit_label = 'create', _method = 'post' %}
+    {% include "pasts/_form.html" %}
+  {% endwith %}
+</div>
+<div class="actions-row">
+  <a class="btn ghost" href="{{ url_for('pasts.index') }}">back</a>
+</div>
+{% endblock %}

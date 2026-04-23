@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}past #{{ past.id }} :: jimw{% endblock %}
+
+{% block content %}
+<h1>Past #{{ past.id }}</h1>
+<div class="panel" data-title="past.meta">
+  <p><strong class="amber">name :</strong> {{ past.name }}</p>
+  <p><strong class="amber">content :</strong></p>
+  <div>{{ past.content | markdown }}</div>
+</div>
+<div class="actions-row">
+  <a class="btn" href="{{ url_for('navs.index', past_id=past.id) }}">navs</a>
+  <a class="btn" href="{{ url_for('pasts.edit', past_id=past.id) }}">edit</a>
+  <a class="btn ghost" href="{{ url_for('pasts.index') }}">back</a>
+</div>
+{% endblock %}
