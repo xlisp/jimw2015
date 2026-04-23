@@ -1,0 +1,20 @@
+<form method="post" action="{{ action }}">
+  {% if is_edit %}
+    <input type="hidden" name="_method" value="PUT">
+  {% endif %}
+  <div class="field">
+    <label for="parid">parid</label>
+    <input type="number" id="parid" name="parid" value="{{ nav.parid if nav else 0 }}">
+  </div>
+  <div class="field">
+    <label for="name">name</label>
+    <input type="text" id="name" name="name" value="{{ nav.name if nav else '' }}">
+  </div>
+  <div class="field">
+    <label for="content">content</label>
+    <textarea id="content" name="content" style="height:400px;">{{ nav.content if nav else '' }}</textarea>
+  </div>
+  <div class="actions-row">
+    <input type="submit" value="{{ submit_label or 'save' }}">
+  </div>
+</form>
