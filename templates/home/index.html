@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}jim & tom :: 2015{% endblock %}
+
+{% block content %}
+<pre class="banner">      _   _
+     | | (_)_ __ _____      __
+  _  | | | | '_ ` _ \ \ /\ / /
+ | |_| | | | | | | | \ V  V /
+  \___/|_|_|_| |_| |_|\_/\_/
+  B L A C K B E R R Y   T U N N E L</pre>
+
+<div class="panel" data-title="boot.sequence">
+  <div data-type="> connection established to node@hulunote.local ..."></div>
+</div>
+
+<div class="panel" data-title="operator">
+  <h3>Jim &amp; Tom :: 2015</h3>
+  <p class="muted">Steve Chan · <span class="amber">chanshunli@gmail.com</span></p>
+</div>
+
+<div class="panel" data-title="lectures">
+  <ul class="hacks">
+    <li><a href="{{ url_for('pasts.index') }}">Past</a></li>
+    <li><a href="{{ url_for('pasts.index') }}">Nav (via Past)</a></li>
+    <li><a href="{{ url_for('file_sies.index') }}">FileSies (py eval)</a></li>
+  </ul>
+</div>
+{% endblock %}
