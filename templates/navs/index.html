@@ -14,6 +14,34 @@
   </form>
 </div>
 
+<div class="panel" data-title="search.path">
+  <form class="search-bar" method="get" action="{{ url_for('navs.index', past_id=past_id) }}">
+    <input type="text" name="path_from" maxlength="100" autocomplete="off"
+           placeholder="> from keyword (A)" value="{{ path_from or '' }}">
+    <input type="text" name="path_to" maxlength="100" autocomplete="off"
+           placeholder="> to keyword (B)" value="{{ path_to or '' }}">
+    <input type="submit" value="path search">
+  </form>
+  {% if path_from and path_to %}
+    <div class="meta">
+      paths A=&ldquo;{{ path_from }}&rdquo; &rarr; B=&ldquo;{{ path_to }}&rdquo;
+      · found <span class="amber">{{ path_results|length }}</span>
+    </div>
+    {% for p in path_results %}
+      <div class="nav-row">
+        <div class="meta">path #{{ loop.index }} · depth {{ p|length }}</div>
+        <div class="content">
+          {% for node in p %}
+            <a href="#{{ node.id }}">#{{ node.id }}</a>
+            <span>{{ node.content }}</span>
+            {% if not loop.last %}<span class="amber"> &rarr; </span>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
 <div class="panel" data-title="root.control">
   <div class="actions-row">
     <a class="btn" href="{{ url_for('navs.update_zero_part', past_id=past_id, nav_id=activation_id) }}">

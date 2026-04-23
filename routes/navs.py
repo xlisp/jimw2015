@@ -146,6 +146,12 @@ def index(past_id: int):
     # random indent widths per row, stable-ish per nav id
     indents = {n.id: int(random.random() * 100) for n in navs}
 
+    path_from = request.args.get("path_from", "").strip()
+    path_to = request.args.get("path_to", "").strip()
+    path_results: list[list[Nav]] = []
+    if path_from and path_to:
+        path_results = _find_paths(past_id, path_from, path_to)
+
     return render_template(
         "navs/index.html",
         past=past,
@@ -154,6 +160,9 @@ def index(past_id: int):
         activation_id=activation_id,
         nav_part_root=nav_part_root,
         indents=indents,
+        path_from=path_from,
+        path_to=path_to,
+        path_results=path_results,
     )
 
 
