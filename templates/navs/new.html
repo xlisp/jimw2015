@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}new nav :: past #{{ past_id }}{% endblock %}
+
+{% block content %}
+<h1>New Nav</h1>
+<div class="panel" data-title="nav.new">
+  {% with action = url_for('navs.create', past_id=past_id), submit_label = 'create' %}
+    {% include "navs/_form.html" %}
+  {% endwith %}
+</div>
+<div class="actions-row">
+  <a class="btn ghost" href="{{ url_for('navs.index', past_id=past_id) }}">back</a>
+</div>
+{% endblock %}

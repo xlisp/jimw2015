@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}edit nav #{{ nav.id }}{% endblock %}
+
+{% block content %}
+<h1>Editing Nav #{{ nav.id }}</h1>
+<div class="panel" data-title="nav.edit">
+  {% with action = url_for('navs.update', past_id=past_id, nav_id=nav.id), submit_label = 'update' %}
+    {% include "navs/_form.html" %}
+  {% endwith %}
+</div>
+<div class="actions-row">
+  <a class="btn ghost" href="{{ url_for('navs.show', past_id=past_id, nav_id=nav.id) }}">show</a>
+  <a class="btn ghost" href="{{ url_for('navs.index', past_id=past_id) }}">back</a>
+</div>
+{% endblock %}
