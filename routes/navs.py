@@ -17,6 +17,26 @@ def _search_by_keys(query, keys: list[str]):
     return query
 
 
+def _wrap_label(text: str, width: int = 16) -> str:
+    text = (text or "").replace('"', "").replace("\\", "").replace("\n", " ").replace("\r", " ")
+    if not text:
+        return ""
+    break_chars = set("，。、；：,.!?！？ 　")
+    parts: list[str] = []
+    buf = ""
+    for ch in text:
+        buf += ch
+        if len(buf) >= width and ch in break_chars:
+            parts.append(buf)
+            buf = ""
+        elif len(buf) >= width * 2:
+            parts.append(buf)
+            buf = ""
+    if buf:
+        parts.append(buf)
+    return "\\n".join(parts)
+
+
 def _build_graph(past_id: int, root_id: int) -> list[str]:
     edges: list[str] = []
     children_cache: dict[int, list[Nav]] = {}
@@ -32,15 +52,50 @@ def _build_graph(past_id: int, root_id: int) -> list[str]:
         kids = children(node_id)
         for kid in kids:
             parent = db.session.get(Nav, kid.parid)
-            parent_content = parent.content if parent else ""
-            edges.append(
-                f'"{(parent_content or "").replace(chr(34), "")}" -> '
-                f'"{(kid.content or "").replace(chr(34), "")}"'
-            )
+            parent_label = _wrap_label(parent.content if parent else "")
+            kid_label = _wrap_label(kid.content or "")
+            edges.append(f'"{parent_label}" -> "{kid_label}"')
             walk(kid.id)
 
     walk(root_id)
     return edges
+
+
+def _find_paths(
+    past_id: int, from_key: str, to_key: str, max_paths: int = 50, max_depth: int = 40
+) -> list[list[Nav]]:
+    navs = Nav.query.filter_by(past_id=past_id).all()
+    children_map: dict[int, list[Nav]] = {}
+    for n in navs:
+        children_map.setdefault(n.parid or 0, []).append(n)
+
+    fk = from_key.lower()
+    tk = to_key.lower()
+    start_nodes = [n for n in navs if n.content and fk in n.content.lower()]
+    end_ids = {n.id for n in navs if n.content and tk in n.content.lower()}
+
+    paths: list[list[Nav]] = []
+
+    def dfs(node: Nav, path: list[Nav], visited: set[int], depth: int):
+        if len(paths) >= max_paths or depth > max_depth:
+            return
+        if node.id in end_ids and (len(path) > 1 or fk == tk):
+            paths.append(list(path))
+            return
+        for child in children_map.get(node.id, []):
+            if child.id in visited:
+                continue
+            visited.add(child.id)
+            path.append(child)
+            dfs(child, path, visited, depth + 1)
+            path.pop()
+            visited.discard(child.id)
+
+    for start in start_nodes:
+        if len(paths) >= max_paths:
+            break
+        dfs(start, [start], {start.id}, 0)
+    return paths
 
 
 @navs_bp.route("/", methods=["GET"])
